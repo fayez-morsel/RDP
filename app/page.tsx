@@ -33,7 +33,8 @@ function IdentityHud({ name, setName, age, setAge, gender, setGender }: { name: 
 
 function AttributeMeters({ stats, remaining, update, active, setActive }: { stats: Record<AttributeKey, number>; remaining: number; update: (key: AttributeKey, value: number) => void; active: AttributeKey | null; setActive: (v: AttributeKey | null) => void }) {
   return <aside className="attribute-hud">
-    <div className="attribute-heading"><p className="section-kicker"><span>02</span> INITIAL ATTRIBUTES</p><div className="point-readout"><span>AVAILABLE</span><b>{remaining}<small>/12</small></b></div></div>
+    <div className="attribute-heading"><p className="section-kicker"><span>02</span> ATTRIBUTE MATRIX</p><div className="point-readout"><span>POINTS</span><b>{remaining}<small>/12</small></b></div></div>
+    <div className="level-up"><span>LEVEL UP</span><i><b /></i><strong>103 <em>/ 280</em></strong></div>
     <div className="meters">{(Object.keys(details) as AttributeKey[]).map((key) => { const item = details[key]; return <div className={`meter ${active === key ? "active" : ""}`} key={key} onMouseEnter={() => setActive(key)} onMouseLeave={() => setActive(null)} onFocus={() => setActive(key)} onBlur={() => setActive(null)}>
       <div className="meter-top"><button type="button" aria-describedby={`${key}-tip`}><i>{item.icon}</i>{item.label}</button><b>{stats[key]}<small>/5</small></b></div>
       <input type="range" min="1" max="5" value={stats[key]} aria-label={`${item.label} self assessment`} style={{ "--value": stats[key] } as React.CSSProperties} onChange={(e) => update(key, Number(e.target.value))} />
@@ -48,7 +49,7 @@ function InitializationOverlay({ step, ready }: { step: number; ready: boolean }
 }
 
 export default function Home() {
-  const [name, setName] = useState("Fayez"); const [age, setAge] = useState(""); const [gender, setGender] = useState<Gender>("neutral");
+  const [name, setName] = useState("F-A-Y-E-Z"); const [age, setAge] = useState(""); const [gender, setGender] = useState<Gender>("neutral");
   const [stats, setStats] = useState(base); const [active, setActive] = useState<AttributeKey | null>(null); const [initializing, setInitializing] = useState(false); const [ready, setReady] = useState(false); const [step, setStep] = useState(0);
   const spent = Object.values(stats).reduce((sum, value) => sum + value, 0) - 6; const remaining = 12 - spent; const displayName = name.trim() || "UNNAMED";
   useEffect(() => { if (!initializing) return; if (step < 4) { const timer = window.setTimeout(() => setStep((value) => value + 1), 300); return () => window.clearTimeout(timer); } const timer = window.setTimeout(() => setReady(true), 430); return () => window.clearTimeout(timer); }, [initializing, step]);
@@ -61,7 +62,8 @@ export default function Home() {
     <div className="creation-layout">
       <IdentityHud name={name} setName={setName} age={age} setAge={setAge} gender={gender} setGender={setGender} />
       <section className="character-stage">
-        <div className="core-label"><span className="diamond">E</span><i>RANK CORE</i></div>
+        <div className="avatar-hex" aria-hidden="true"><i /><i /><i /><span>E</span></div>
+        <div className="avatar-arrow avatar-arrow-left" aria-hidden="true">‹</div><div className="avatar-arrow avatar-arrow-right" aria-hidden="true">›</div>
         <div className="character-data"><strong>{displayName}</strong><span>LEVEL 1 <i /> RANK E</span><div className="xp"><b>XP</b><i /><em>0 / 100</em></div></div>
         <div className="scene-shell"><CharacterScene3D gender={gender} activeZone={active ? details[active].zone : null} /></div>
         <div className="stage-readout"><span>LEVEL <b>1</b></span><i /><span>RANK <b>E</b></span><i /><span>POINTS <b>{remaining}</b></span></div>
