@@ -1,122 +1,74 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import CharacterScene3D from "./CharacterScene3D";
 
 type AttributeKey = "strength" | "intelligence" | "discipline" | "vitality" | "wealth" | "charisma";
 type Gender = "male" | "female" | "neutral";
-
-const attributeInfo: Record<AttributeKey, { label: string; icon: string; description: string; zone: string }> = {
-  strength: { label: "Strength", icon: "✦", description: "Physical training, movement and performance.", zone: "body" },
-  intelligence: { label: "Intelligence", icon: "◉", description: "Learning, study and knowledge development.", zone: "head" },
-  discipline: { label: "Discipline", icon: "◈", description: "Consistency, focus and execution.", zone: "core" },
-  vitality: { label: "Vitality", icon: "⊹", description: "Sleep, recovery, nutrition and energy.", zone: "torso" },
-  wealth: { label: "Wealth", icon: "◇", description: "Career, business and financial growth.", zone: "core" },
-  charisma: { label: "Charisma", icon: "☼", description: "Communication, leadership and relationships.", zone: "head" },
+const details: Record<AttributeKey, { label: string; icon: string; tip: string; zone: string }> = {
+  strength: { label: "Strength", icon: "01", tip: "Physical training, movement and performance.", zone: "body" },
+  intelligence: { label: "Intelligence", icon: "02", tip: "Learning, study and knowledge development.", zone: "head" },
+  discipline: { label: "Discipline", icon: "03", tip: "Consistency, focus and execution.", zone: "core" },
+  vitality: { label: "Vitality", icon: "04", tip: "Sleep, recovery, nutrition and energy.", zone: "torso" },
+  wealth: { label: "Wealth", icon: "05", tip: "Career, business and financial growth.", zone: "core" },
+  charisma: { label: "Charisma", icon: "06", tip: "Communication, leadership and relationships.", zone: "head" },
 };
+const base: Record<AttributeKey, number> = { strength: 1, intelligence: 1, discipline: 1, vitality: 1, wealth: 1, charisma: 1 };
+const types: { value: Gender; label: string; mark: string }[] = [{ value: "male", label: "Male", mark: "M" }, { value: "female", label: "Female", mark: "F" }, { value: "neutral", label: "Neutral", mark: "N" }];
 
-const initialStats: Record<AttributeKey, number> = { strength: 1, intelligence: 1, discipline: 1, vitality: 1, wealth: 1, charisma: 1 };
-const genderChoices: { value: Gender; label: string; glyph: string }[] = [
-  { value: "male", label: "Male", glyph: "◐" }, { value: "female", label: "Female", glyph: "◑" }, { value: "neutral", label: "Neutral", glyph: "◇" },
-];
-
-function Character({ gender, activeZone }: { gender: Gender; activeZone: string | null }) {
-  return <div className={`character-wrap ${gender} ${activeZone ? `zone-${activeZone}` : ""}`} aria-label="Holographic character preview">
-    <div className="rank-core" aria-hidden="true"><span>E</span></div>
-    <div className="character-float">
-      <div className="head" />
-      <div className="neck" />
-      <div className="torso"><i /><i /><i /></div>
-      <div className="arm left" /><div className="arm right" />
-      <div className="hips" />
-      <div className="leg left" /><div className="leg right" />
+function IdentityHud({ name, setName, age, setAge, gender, setGender }: { name: string; setName: (v: string) => void; age: string; setAge: (v: string) => void; gender: Gender; setGender: (v: Gender) => void }) {
+  return <aside className="identity-hud">
+    <p className="section-kicker"><span>01</span> IDENTITY</p>
+    <label className="hud-input-label" htmlFor="name">NAME</label>
+    <div className="hud-input"><input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={24} placeholder="YOUR NAME" aria-invalid={!name.trim()} /></div>
+    {!name.trim() && <p className="error">Identity designation required.</p>}
+    <p className="micro-label">CHARACTER TYPE</p>
+    <div className="type-controls" role="radiogroup" aria-label="Character type">
+      {types.map((item) => <button key={item.value} type="button" role="radio" aria-checked={gender === item.value} className={gender === item.value ? "active" : ""} onClick={() => setGender(item.value)}><b>{item.mark}</b><span>{item.label}</span></button>)}
     </div>
-    <div className="scan-line" />
-    <div className="platform"><span /><span /><span /></div>
-  </div>;
+    <label className="age-control" htmlFor="age"><span>AGE <em>OPTIONAL</em></span><input id="age" value={age} type="number" min="1" max="120" onChange={(e) => setAge(e.target.value)} placeholder="--" /></label>
+    <div className="identity-status"><i /> IDENTITY CHANNEL / READY</div>
+  </aside>;
+}
+
+function AttributeMeters({ stats, remaining, update, active, setActive }: { stats: Record<AttributeKey, number>; remaining: number; update: (key: AttributeKey, value: number) => void; active: AttributeKey | null; setActive: (v: AttributeKey | null) => void }) {
+  return <aside className="attribute-hud">
+    <div className="attribute-heading"><p className="section-kicker"><span>02</span> INITIAL ATTRIBUTES</p><div className="point-readout"><span>AVAILABLE</span><b>{remaining}<small>/12</small></b></div></div>
+    <div className="meters">{(Object.keys(details) as AttributeKey[]).map((key) => { const item = details[key]; return <div className={`meter ${active === key ? "active" : ""}`} key={key} onMouseEnter={() => setActive(key)} onMouseLeave={() => setActive(null)} onFocus={() => setActive(key)} onBlur={() => setActive(null)}>
+      <div className="meter-top"><button type="button" aria-describedby={`${key}-tip`}><i>{item.icon}</i>{item.label}</button><b>{stats[key]}<small>/5</small></b></div>
+      <input type="range" min="1" max="5" value={stats[key]} aria-label={`${item.label} self assessment`} style={{ "--value": stats[key] } as React.CSSProperties} onChange={(e) => update(key, Number(e.target.value))} />
+      <span className="meter-tooltip" role="tooltip" id={`${key}-tip`}>{item.tip}</span>
+    </div>; })}</div>
+  </aside>;
+}
+
+function InitializationOverlay({ step, ready }: { step: number; ready: boolean }) {
+  const messages = ["INITIALIZING SYSTEM...", "SAVING IDENTITY...", "CALIBRATING ATTRIBUTES...", "CHARACTER REGISTERED", "SYSTEM ONLINE"];
+  return <div className="initialization" role="status" aria-live="assertive"><div className="terminal"><p>SYSTEM / INITIALIZATION</p>{messages.slice(0, step + 1).map((message, index) => <div className={index === step ? "current" : "done"} key={message}>{index < step ? "OK" : ">"} {message}</div>)}{ready && <h2>SYSTEM READY</h2>}</div></div>;
 }
 
 export default function Home() {
-  const [name, setName] = useState("Fayez");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState<Gender>("neutral");
-  const [stats, setStats] = useState(initialStats);
-  const [active, setActive] = useState<AttributeKey | null>(null);
-  const [initializing, setInitializing] = useState(false);
-  const [ready, setReady] = useState(false);
-  const spent = Object.values(stats).reduce((a, b) => a + b, 0) - 6;
-  const remaining = 12 - spent;
-  const displayName = name.trim() || "UNNAMED";
-  const steps = ["INITIALIZING SYSTEM...", "SAVING IDENTITY...", "CALIBRATING ATTRIBUTES...", "CHARACTER REGISTERED", "SYSTEM ONLINE"];
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    if (!initializing) return;
-    if (step < steps.length - 1) {
-      const id = window.setTimeout(() => setStep((s) => s + 1), 300);
-      return () => window.clearTimeout(id);
-    }
-    const id = window.setTimeout(() => setReady(true), 430);
-    return () => window.clearTimeout(id);
-  }, [initializing, step]);
-
-  useEffect(() => {
-    if (!ready) return;
-    const id = window.setTimeout(() => window.location.assign("/dashboard"), 750);
-    return () => window.clearTimeout(id);
-  }, [ready]);
-
-  const updateStat = (key: AttributeKey, value: number) => {
-    const current = stats[key];
-    const nextSpent = spent - (current - 1) + (value - 1);
-    if (nextSpent <= 12) setStats({ ...stats, [key]: value });
-  };
-  const start = () => {
-    if (!name.trim()) return;
-    setStep(0); setInitializing(true);
-  };
-  const panelStyle = useMemo(() => ({ "--gender-shift": gender === "female" ? "-5px" : gender === "male" ? "5px" : "0px" }) as React.CSSProperties, [gender]);
-  return <main className="system-page" style={panelStyle}>
-    <div className="environment" aria-hidden="true"><div className="grid-floor" /><div className="particle p1" /><div className="particle p2" /><div className="particle p3" /></div>
-    <div className="hud-frame" aria-hidden="true"><b /><b /><b /><b /></div>
-    <header className="page-header"><div className="status"><i /> SYSTEM / 01</div><h1>Character Creation</h1><p>Configure your identity and initialize your SYSTEM.</p><div className="header-line" /></header>
-    <section className="creation-grid">
-      <aside className="hud-card identity-panel">
-        <div className="panel-label"><span>01</span> IDENTITY</div>
-        <label className="field-label" htmlFor="name">Name</label>
-        <input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={24} aria-invalid={!name.trim()} />
-        {!name.trim() && <p className="field-error">Enter a name to initialize.</p>}
-        <p className="field-label type-label">Character Type</p>
-        <div className="gender-grid" role="radiogroup" aria-label="Character type">
-          {genderChoices.map((choice) => <button key={choice.value} type="button" role="radio" aria-checked={gender === choice.value} className={gender === choice.value ? "selected" : ""} onClick={() => setGender(choice.value)}><b>{choice.glyph}</b><span>{choice.label}</span></button>)}
-        </div>
-        <label className="field-label age-label" htmlFor="age">Age <em>optional</em></label>
-        <input id="age" type="number" min="1" max="120" value={age} onChange={(e) => setAge(e.target.value)} placeholder="--" />
-        <div className="identity-footer"><span>STATUS</span><b>READY</b><i /></div>
-      </aside>
-
-      <section className="character-panel">
-        <div className="level-display"><span>{displayName}</span><div><b>LEVEL 1</b><i /> <b>RANK E</b></div><div className="xp"><small>XP</small><div><i /></div><small>0 / 100</small></div></div>
-        <div className="connection left-connection" /><div className="connection right-connection" />
-        <Character gender={gender} activeZone={active ? attributeInfo[active].zone : null} />
-        <div className="mini-stats"><div><span>LEVEL</span><b>1</b></div><div><span>RANK</span><b>E</b></div><div><span>AVAILABLE POINTS</span><b>{remaining}</b></div></div>
+  const [name, setName] = useState("Fayez"); const [age, setAge] = useState(""); const [gender, setGender] = useState<Gender>("neutral");
+  const [stats, setStats] = useState(base); const [active, setActive] = useState<AttributeKey | null>(null); const [initializing, setInitializing] = useState(false); const [ready, setReady] = useState(false); const [step, setStep] = useState(0);
+  const spent = Object.values(stats).reduce((sum, value) => sum + value, 0) - 6; const remaining = 12 - spent; const displayName = name.trim() || "UNNAMED";
+  useEffect(() => { if (!initializing) return; if (step < 4) { const timer = window.setTimeout(() => setStep((value) => value + 1), 300); return () => window.clearTimeout(timer); } const timer = window.setTimeout(() => setReady(true), 430); return () => window.clearTimeout(timer); }, [initializing, step]);
+  useEffect(() => { if (!ready) return; const timer = window.setTimeout(() => window.location.assign("/dashboard"), 750); return () => window.clearTimeout(timer); }, [ready]);
+  const update = (key: AttributeKey, value: number) => { const projected = spent - (stats[key] - 1) + (value - 1); if (projected <= 12) setStats({ ...stats, [key]: value }); };
+  return <main className="system-page">
+    <div className="atmosphere" aria-hidden="true"><div className="fog" /><div className="floor-grid" /><i className="dot d1" /><i className="dot d2" /><i className="dot d3" /><i className="scan" /></div>
+    <div className="system-frame" aria-hidden="true"><i /><i /><i /><i /><b>SYS // 01</b><em>UPLINK STABLE</em></div>
+    <header className="page-header"><p>SYSTEM / CHARACTER PROTOCOL</p><h1>Character Creation</h1><span>Configure your identity and initialize your SYSTEM.</span></header>
+    <div className="creation-layout">
+      <IdentityHud name={name} setName={setName} age={age} setAge={setAge} gender={gender} setGender={setGender} />
+      <section className="character-stage">
+        <div className="core-label"><span className="diamond">E</span><i>RANK CORE</i></div>
+        <div className="character-data"><strong>{displayName}</strong><span>LEVEL 1 <i /> RANK E</span><div className="xp"><b>XP</b><i /><em>0 / 100</em></div></div>
+        <div className="scene-shell"><CharacterScene3D gender={gender} activeZone={active ? details[active].zone : null} /></div>
+        <div className="stage-readout"><span>LEVEL <b>1</b></span><i /><span>RANK <b>E</b></span><i /><span>POINTS <b>{remaining}</b></span></div>
       </section>
-
-      <aside className="hud-card attributes-panel">
-        <div className="panel-label"><span>02</span> INITIAL ATTRIBUTES</div>
-        <div className="points"><span>POINTS REMAINING</span><b>{remaining}<small> / 12</small></b></div>
-        <div className="attributes">
-          {(Object.keys(attributeInfo) as AttributeKey[]).map((key) => {
-            const item = attributeInfo[key];
-            return <div className={`attribute ${active === key ? "active" : ""}`} key={key} onMouseEnter={() => setActive(key)} onMouseLeave={() => setActive(null)} onFocus={() => setActive(key)} onBlur={() => setActive(null)}>
-              <div className="attribute-heading"><button type="button" aria-label={`${item.label}: ${item.description}`}><i>{item.icon}</i>{item.label}</button><b>{stats[key]}<small>/5</small></b></div>
-              <input aria-label={`${item.label} value`} type="range" min="1" max="5" value={stats[key]} style={{ "--value": stats[key] } as React.CSSProperties} onChange={(e) => updateStat(key, Number(e.target.value))} />
-              <p role="tooltip">{item.description}</p>
-            </div>;
-          })}
-        </div>
-      </aside>
-    </section>
-    <footer className="page-footer"><button type="button" className="initialize" disabled={!name.trim()} onClick={start}><span>INITIALIZE SYSTEM</span></button><p>Your starting attributes can evolve through real-world progress.</p></footer>
-    {initializing && <div className="initialization" role="status" aria-live="assertive"><div className="terminal"><p>SYSTEM // INITIALIZATION</p>{steps.slice(0, step + 1).map((item, index) => <div key={item} className={index === step ? "current" : "done"}>{index < step ? "✓" : ">"} {item}</div>)}{ready && <h2>SYSTEM READY</h2>}</div></div>}
+      <AttributeMeters stats={stats} remaining={remaining} update={update} active={active} setActive={setActive} />
+    </div>
+    <footer className="page-footer"><button className="continue" type="button" onClick={() => { if (name.trim()) { setStep(0); setInitializing(true); } }} disabled={!name.trim()}><span>CONTINUE</span></button><p>Your starting attributes can evolve through real-world progress.</p></footer>
+    {initializing && <InitializationOverlay step={step} ready={ready} />}
   </main>;
 }
