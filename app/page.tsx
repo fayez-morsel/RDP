@@ -14,7 +14,7 @@ const details: Record<AttributeKey, { label: string; icon: string; tip: string; 
   charisma: { label: "Charisma", icon: "06", tip: "Communication, leadership and relationships.", zone: "head" },
 };
 const base: Record<AttributeKey, number> = { strength: 1, intelligence: 1, discipline: 1, vitality: 1, wealth: 1, charisma: 1 };
-const types: { value: Gender; label: string; mark: string }[] = [{ value: "male", label: "Male", mark: "M" }, { value: "female", label: "Female", mark: "F" }, { value: "neutral", label: "Neutral", mark: "N" }];
+const types: { value: Gender; label: string; mark: string }[] = [{ value: "male", label: "Male", mark: "♂" }, { value: "female", label: "Female", mark: "♀" }, { value: "neutral", label: "Neutral", mark: "◉" }];
 
 function IdentityHud({ name, setName, age, setAge, gender, setGender }: { name: string; setName: (v: string) => void; age: string; setAge: (v: string) => void; gender: Gender; setGender: (v: Gender) => void }) {
   return <aside className="identity-hud">
@@ -49,13 +49,16 @@ function InitializationOverlay({ step, ready }: { step: number; ready: boolean }
 }
 
 export default function Home() {
-  const [name, setName] = useState("F-A-Y-E-Z"); const [age, setAge] = useState(""); const [gender, setGender] = useState<Gender>("neutral");
+  const [name, setName] = useState("F-A-Y"); const [age, setAge] = useState(""); const [gender, setGender] = useState<Gender>("neutral");
   const [stats, setStats] = useState(base); const [active, setActive] = useState<AttributeKey | null>(null); const [initializing, setInitializing] = useState(false); const [ready, setReady] = useState(false); const [step, setStep] = useState(0);
+  const [showReferenceOverlay, setShowReferenceOverlay] = useState(false); const [referenceOpacity, setReferenceOpacity] = useState(.52);
   const spent = Object.values(stats).reduce((sum, value) => sum + value, 0) - 6; const remaining = 12 - spent; const displayName = name.trim() || "UNNAMED";
   useEffect(() => { if (!initializing) return; if (step < 4) { const timer = window.setTimeout(() => setStep((value) => value + 1), 300); return () => window.clearTimeout(timer); } const timer = window.setTimeout(() => setReady(true), 430); return () => window.clearTimeout(timer); }, [initializing, step]);
   useEffect(() => { if (!ready) return; const timer = window.setTimeout(() => window.location.assign("/dashboard"), 750); return () => window.clearTimeout(timer); }, [ready]);
   const update = (key: AttributeKey, value: number) => { const projected = spent - (stats[key] - 1) + (value - 1); if (projected <= 12) setStats({ ...stats, [key]: value }); };
   return <main className="system-page">
+    {showReferenceOverlay && <img className="reference-overlay" src="/reference-character-creation.png" alt="" style={{ opacity: referenceOpacity }} />}
+    <div className="reference-tools"><label><input type="checkbox" checked={showReferenceOverlay} onChange={(event) => setShowReferenceOverlay(event.target.checked)} /> Reference</label>{showReferenceOverlay && <input aria-label="Reference overlay opacity" type="range" min="0" max="1" step=".05" value={referenceOpacity} onChange={(event) => setReferenceOpacity(Number(event.target.value))} />}</div>
     <div className="atmosphere" aria-hidden="true"><div className="fog" /><div className="floor-grid" /><i className="dot d1" /><i className="dot d2" /><i className="dot d3" /><i className="scan" /></div>
     <div className="system-frame" aria-hidden="true"><i /><i /><i /><i /><b>SYS // 01</b><em>UPLINK STABLE</em></div>
     <header className="page-header"><p>SYSTEM / CHARACTER PROTOCOL</p><h1>Character Creation</h1><span>Configure your identity and initialize your SYSTEM.</span></header>

@@ -65,10 +65,11 @@ function Mannequin({ gender, activeZone }: { gender: Gender; activeZone: string 
   const shoulder = gender === "male" ? 1.1 : gender === "female" ? .92 : 1;
   const waist = gender === "female" ? .73 : .84;
   const glow = (zone: string) => activeZone === zone ? .28 : 0;
-  return <group ref={ref} position={[0, -1.2, 0]}>
+  return <group ref={ref} position={[0, -1.2, 0]} scale={[.65, 1, .65]}>
     <Part type="sphere" position={[0, 2.65, 0]} scale={[.47, .61, .47]} boost={glow("head")} />
     <Part type="cylinder" position={[0, 2.1, 0]} scale={[.21, .26, .21]} boost={glow("head")} />
     <Part type="capsule" position={[0, 1.34, 0]} scale={[shoulder * .82, .98, .56]} boost={glow("torso")} />
+    <mesh position={[0, 1.58, .31]} rotation={[0, 0, Math.PI]}><coneGeometry args={[.19, .24, 3]} /><meshBasicMaterial color="#c5ffff" transparent opacity={.82} blending={THREE.AdditiveBlending} /></mesh>
     <Part type="cylinder" position={[0, .58, 0]} scale={[waist, .28, .53]} boost={glow("core")} />
     <Part position={[-.69 * shoulder, 1.32, 0]} rotation={[0, 0, .12]} scale={[.19, .87, .19]} boost={glow("body")} />
     <Part position={[.69 * shoulder, 1.32, 0]} rotation={[0, 0, -.12]} scale={[.19, .87, .19]} boost={glow("body")} />
@@ -82,7 +83,7 @@ function Mannequin({ gender, activeZone }: { gender: Gender; activeZone: string 
 function Platform() {
   const group = useRef<THREE.Group>(null);
   useFrame(({ clock }) => { if (group.current) group.current.rotation.z = clock.getElapsedTime() * .11; });
-  return <group ref={group} position={[0, -2.55, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+  return <group ref={group} position={[0, -2.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
     {[1.17, 1.48, 1.84, 2.15].map((radius, index) => <mesh key={radius} rotation={[0, 0, index * .68]}><torusGeometry args={[radius, .016 + index * .005, 8, 64]} /><meshBasicMaterial color="#4deaf2" transparent opacity={.65 - index * .09} blending={THREE.AdditiveBlending} /></mesh>)}
     <mesh><circleGeometry args={[1.14, 64]} /><meshBasicMaterial color="#28c8db" transparent opacity={.08} blending={THREE.AdditiveBlending} /></mesh>
     <mesh position={[0, 0, .02]}><ringGeometry args={[.88, .91, 64]} /><meshBasicMaterial color="#b5ffff" transparent opacity={.8} /></mesh>
@@ -101,5 +102,5 @@ function Scene({ gender, activeZone }: { gender: Gender; activeZone: string | nu
 }
 
 export default function CharacterScene3D({ gender, activeZone }: { gender: Gender; activeZone: string | null }) {
-  return <div className="scene" aria-label="Interactive holographic character preview"><Canvas dpr={[1, 1.5]} camera={{ position: [0, .55, 9], fov: 34 }} gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }} fallback={<div className="webgl-fallback">HOLOGRAM LINK OFFLINE</div>}><Scene gender={gender} activeZone={activeZone} /></Canvas></div>;
+  return <div className="scene" aria-label="Interactive holographic character preview"><Canvas dpr={[1, 1.5]} camera={{ position: [0, .55, 5.7], fov: 34 }} gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }} fallback={<div className="webgl-fallback">HOLOGRAM LINK OFFLINE</div>}><Scene gender={gender} activeZone={activeZone} /></Canvas></div>;
 }
