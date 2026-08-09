@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react/no-unknown-property -- React Three Fiber renders Three.js JSX properties. */
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
@@ -43,7 +44,7 @@ const fragmentShader = /* glsl */ `
 
 function HoloMaterial({ boost = 0 }: { boost?: number }) {
   const material = useRef<THREE.ShaderMaterial>(null);
-  const uniforms = useMemo(() => ({ uTime: { value: 0 }, uBoost: { value: boost }, uColor: { value: new THREE.Color("#48eaf2") } }), [boost]);
+  const uniforms = useMemo(() => ({ uTime: { value: 0 }, uBoost: { value: boost }, uColor: { value: new THREE.Color("#a58cff") } }), [boost]);
   useFrame(({ clock }) => { if (material.current) material.current.uniforms.uTime.value = clock.getElapsedTime(); });
   return <shaderMaterial ref={material} uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader} transparent depthWrite={false} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />;
 }
@@ -51,7 +52,7 @@ function HoloMaterial({ boost = 0 }: { boost?: number }) {
 function Part({ position, rotation, scale, type = "capsule", boost }: { position: [number, number, number]; rotation?: [number, number, number]; scale?: [number, number, number]; type?: "capsule" | "sphere" | "cylinder"; boost?: number }) {
   const geometry = type === "sphere" ? <sphereGeometry args={[1, 28, 28]} /> : type === "cylinder" ? <cylinderGeometry args={[1, .88, 1, 24, 14, true]} /> : <capsuleGeometry args={[.5, 1, 12, 24]} />;
   const wireGeometry = type === "sphere" ? <sphereGeometry args={[1.006, 28, 28]} /> : type === "cylinder" ? <cylinderGeometry args={[1.006, .886, 1.006, 24, 14, true]} /> : <capsuleGeometry args={[.503, 1.006, 12, 24]} />;
-  return <group position={position} rotation={rotation} scale={scale}><mesh castShadow>{geometry}<HoloMaterial boost={boost} /></mesh><mesh>{wireGeometry}<meshBasicMaterial color="#baffff" transparent opacity={.065} wireframe blending={THREE.AdditiveBlending} depthWrite={false} /></mesh></group>;
+  return <group position={position} rotation={rotation} scale={scale}><mesh castShadow>{geometry}<HoloMaterial boost={boost} /></mesh><mesh>{wireGeometry}<meshBasicMaterial color="#e0d6ff" transparent opacity={.065} wireframe blending={THREE.AdditiveBlending} depthWrite={false} /></mesh></group>;
 }
 
 function Mannequin({ gender, activeZone }: { gender: Gender; activeZone: string | null }) {
@@ -84,18 +85,18 @@ function Platform() {
   const group = useRef<THREE.Group>(null);
   useFrame(({ clock }) => { if (group.current) group.current.rotation.z = clock.getElapsedTime() * .11; });
   return <group ref={group} position={[0, -2.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-    {[1.17, 1.48, 1.84, 2.15].map((radius, index) => <mesh key={radius} rotation={[0, 0, index * .68]}><torusGeometry args={[radius, .016 + index * .005, 8, 64]} /><meshBasicMaterial color="#4deaf2" transparent opacity={.65 - index * .09} blending={THREE.AdditiveBlending} /></mesh>)}
-    <mesh><circleGeometry args={[1.14, 64]} /><meshBasicMaterial color="#28c8db" transparent opacity={.08} blending={THREE.AdditiveBlending} /></mesh>
-    <mesh position={[0, 0, .02]}><ringGeometry args={[.88, .91, 64]} /><meshBasicMaterial color="#b5ffff" transparent opacity={.8} /></mesh>
+    {[1.17, 1.48, 1.84, 2.15].map((radius, index) => <mesh key={radius} rotation={[0, 0, index * .68]}><torusGeometry args={[radius, .016 + index * .005, 8, 64]} /><meshBasicMaterial color="#aa8fff" transparent opacity={.65 - index * .09} blending={THREE.AdditiveBlending} /></mesh>)}
+    <mesh><circleGeometry args={[1.14, 64]} /><meshBasicMaterial color="#7d6cff" transparent opacity={.08} blending={THREE.AdditiveBlending} /></mesh>
+    <mesh position={[0, 0, .02]}><ringGeometry args={[.88, .91, 64]} /><meshBasicMaterial color="#dfd5ff" transparent opacity={.8} /></mesh>
   </group>;
 }
 
 function Scene({ gender, activeZone }: { gender: Gender; activeZone: string | null }) {
   return <>
     <ambientLight intensity={.12} />
-    <pointLight position={[-3, 2, 2]} color="#3dedff" intensity={1.35} distance={7} />
-    <pointLight position={[3, .5, -1]} color="#195bff" intensity={.7} distance={7} />
-    <pointLight position={[0, -2, 1]} color="#42f5ff" intensity={1.2} distance={4} />
+    <pointLight position={[-3, 2, 2]} color="#b59cff" intensity={1.35} distance={7} />
+    <pointLight position={[3, .5, -1]} color="#6957ee" intensity={.7} distance={7} />
+    <pointLight position={[0, -2, 1]} color="#a384ff" intensity={1.2} distance={4} />
     <Float speed={.6} rotationIntensity={.04} floatIntensity={.12}><Mannequin gender={gender} activeZone={activeZone} /></Float>
     <Platform />
   </>;

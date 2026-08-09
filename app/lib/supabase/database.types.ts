@@ -1,0 +1,14 @@
+/* Generated-style database contract. Regenerate with `supabase gen types typescript` after linking a project. */
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+export type Database = {
+  public: {
+    Tables: {
+      profiles: { Row: { id: string; user_id: string; display_name: string; username: string; avatar_path: string | null; title: string; bio: string; onboarding_completed_at: string | null; created_at: string; updated_at: string }; Insert: Partial<{ id: string; user_id: string; display_name: string; username: string; avatar_path: string | null; title: string; bio: string; onboarding_completed_at: string | null }>; Update: Partial<{ display_name: string; username: string; avatar_path: string | null; title: string; bio: string; onboarding_completed_at: string | null }> };
+      player_progression: { Row: { user_id: string; level: number; rank: string; league: string; xp: number; next_level_xp: number; attribute_points: number; coins: number; keys: number; updated_at: string }; Insert: Partial<{ user_id: string; level: number; rank: string; league: string; xp: number; next_level_xp: number; attribute_points: number; coins: number; keys: number }>; Update: Partial<{ level: number; rank: string; league: string; xp: number; next_level_xp: number; attribute_points: number; coins: number; keys: number }> };
+      activity_events: { Row: { id: string; user_id: string; type: string; source_id: string | null; route: string; metadata: Json; idempotency_key: string; occurred_at: string; created_at: string }; Insert: never; Update: never };
+      notifications: { Row: { id: string; user_id: string; event_id: string | null; kind: string; title: string; message: string; route: string; metadata: Json; read_at: string | null; archived_at: string | null; created_at: string }; Insert: never; Update: Partial<{ read_at: string | null; archived_at: string | null }> };
+    };
+    Views: { public_leaderboard: { Row: { user_id: string; display_name: string; avatar_path: string | null; level: number | null; rank: string | null; xp: number | null; achievement_count: number | null } } };
+    Functions: { complete_quest: { Args: { p_quest_id: string; p_idempotency_key: string }; Returns: Json }; complete_habit_occurrence: { Args: { p_habit_id: string; p_occurred_on: string; p_idempotency_key: string }; Returns: Json }; claim_achievement_reward: { Args: { p_achievement_id: string; p_idempotency_key: string }; Returns: Json }; equip_owned_item: { Args: { p_player_item_id: string }; Returns: Json }; allocate_attribute_points: { Args: { p_attribute_id: string; p_points: number; p_idempotency_key: string }; Returns: Json }; initialize_player: { Args: { p_display_name: string; p_username: string; p_title?: string }; Returns: Json } };
+  };
+};

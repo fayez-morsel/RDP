@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { PlayerProvider } from "./player-store";
+import { FeedbackSystem } from "./feedback-system";
+import { SkipLink } from "./components/skip-link";
 import "./globals.css";
+import "./accessibility.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://system-character-creation.fayezmorsel6.chatgpt.site"),
@@ -7,5 +11,6 @@ export const metadata: Metadata = {
   description: "Initialize your real-life RPG character.",
   openGraph: { title: "SYSTEM — Character Creation", description: "Initialize your real-life RPG character.", images: ["/og.png"] },
   twitter: { card: "summary_large_image", title: "SYSTEM — Character Creation", images: ["/og.png"] },
+  icons: { icon: "/favicon.svg" },
 };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en"><body>{children}</body></html>; }
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en"><body><SkipLink /><PlayerProvider>{children}<FeedbackSystem /></PlayerProvider></body></html>; }

@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import CharacterScene3D from "./CharacterScene3D";
+import { lazy, Suspense, useEffect, useState } from "react";
+import "./character.css";
+import "./character-fixes.css";
+import "./character-performance.css";
+
+const CharacterScene3D = lazy(() => import("./CharacterScene3D"));
 
 type AttributeKey = "strength" | "intelligence" | "discipline" | "vitality" | "wealth" | "charisma";
 type Gender = "male" | "female" | "neutral";
@@ -37,7 +41,7 @@ function AttributeMeters({ stats, remaining, update, active, setActive }: { stat
     <div className="level-up"><span>LEVEL UP</span><i><b /></i><strong>103 <em>/ 280</em></strong></div>
     <div className="meters">{(Object.keys(details) as AttributeKey[]).map((key) => { const item = details[key]; return <div className={`meter ${active === key ? "active" : ""}`} key={key} onMouseEnter={() => setActive(key)} onMouseLeave={() => setActive(null)} onFocus={() => setActive(key)} onBlur={() => setActive(null)}>
       <div className="meter-top"><button type="button" aria-describedby={`${key}-tip`}><i>{item.icon}</i>{item.label}</button><b>{stats[key]}<small>/5</small></b></div>
-      <input type="range" min="1" max="5" value={stats[key]} aria-label={`${item.label} self assessment`} style={{ "--value": stats[key] } as React.CSSProperties} onChange={(e) => update(key, Number(e.target.value))} />
+      <input type="range" min="1" max="5" value={stats[key]} aria-label={`${item.label} self assessment`} style={{ "--value": String(stats[key]) } as React.CSSProperties} onChange={(e) => update(key, Number(e.target.value))} />
       <span className="meter-tooltip" role="tooltip" id={`${key}-tip`}>{item.tip}</span>
     </div>; })}</div>
   </aside>;
@@ -51,14 +55,11 @@ function InitializationOverlay({ step, ready }: { step: number; ready: boolean }
 export default function Home() {
   const [name, setName] = useState("F-A-Y"); const [age, setAge] = useState(""); const [gender, setGender] = useState<Gender>("neutral");
   const [stats, setStats] = useState(base); const [active, setActive] = useState<AttributeKey | null>(null); const [initializing, setInitializing] = useState(false); const [ready, setReady] = useState(false); const [step, setStep] = useState(0);
-  const [showReferenceOverlay, setShowReferenceOverlay] = useState(false); const [referenceOpacity, setReferenceOpacity] = useState(.52);
   const spent = Object.values(stats).reduce((sum, value) => sum + value, 0) - 6; const remaining = 12 - spent; const displayName = name.trim() || "UNNAMED";
   useEffect(() => { if (!initializing) return; if (step < 4) { const timer = window.setTimeout(() => setStep((value) => value + 1), 300); return () => window.clearTimeout(timer); } const timer = window.setTimeout(() => setReady(true), 430); return () => window.clearTimeout(timer); }, [initializing, step]);
   useEffect(() => { if (!ready) return; const timer = window.setTimeout(() => window.location.assign("/dashboard"), 750); return () => window.clearTimeout(timer); }, [ready]);
   const update = (key: AttributeKey, value: number) => { const projected = spent - (stats[key] - 1) + (value - 1); if (projected <= 12) setStats({ ...stats, [key]: value }); };
   return <main className="system-page">
-    {showReferenceOverlay && <img className="reference-overlay" src="/reference-character-creation.png" alt="" style={{ opacity: referenceOpacity }} />}
-    <div className="reference-tools"><label><input type="checkbox" checked={showReferenceOverlay} onChange={(event) => setShowReferenceOverlay(event.target.checked)} /> Reference</label>{showReferenceOverlay && <input aria-label="Reference overlay opacity" type="range" min="0" max="1" step=".05" value={referenceOpacity} onChange={(event) => setReferenceOpacity(Number(event.target.value))} />}</div>
     <div className="atmosphere" aria-hidden="true"><div className="fog" /><div className="floor-grid" /><i className="dot d1" /><i className="dot d2" /><i className="dot d3" /><i className="scan" /></div>
     <div className="system-frame" aria-hidden="true"><i /><i /><i /><i /><b>SYS // 01</b><em>UPLINK STABLE</em></div>
     <header className="page-header"><p>SYSTEM / CHARACTER PROTOCOL</p><h1>Character Creation</h1><span>Configure your identity and initialize your SYSTEM.</span></header>
@@ -68,7 +69,7 @@ export default function Home() {
         <div className="avatar-hex" aria-hidden="true"><i /><i /><i /><span>E</span></div>
         <div className="avatar-arrow avatar-arrow-left" aria-hidden="true">‹</div><div className="avatar-arrow avatar-arrow-right" aria-hidden="true">›</div>
         <div className="character-data"><strong>{displayName}</strong><span>LEVEL 1 <i /> RANK E</span><div className="xp"><b>XP</b><i /><em>0 / 100</em></div></div>
-        <div className="scene-shell"><CharacterScene3D gender={gender} activeZone={active ? details[active].zone : null} /></div>
+        <div className="scene-shell"><Suspense fallback={<div className="scene-loading" aria-label="Loading character preview" role="status" />}><CharacterScene3D gender={gender} activeZone={active ? details[active].zone : null} /></Suspense></div>
         <div className="stage-readout"><span>LEVEL <b>1</b></span><i /><span>RANK <b>E</b></span><i /><span>POINTS <b>{remaining}</b></span></div>
       </section>
       <AttributeMeters stats={stats} remaining={remaining} update={update} active={active} setActive={setActive} />

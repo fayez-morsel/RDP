@@ -1,0 +1,1 @@
+.achievements-panel{grid-column:1 / -1}.achievement-list{grid-template-columns:repeat(2,minmax(0,1fr))}@media(max-width:560px){.achievement-list{grid-template-columns:1fr}}

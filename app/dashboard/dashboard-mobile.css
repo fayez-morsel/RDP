@@ -1,0 +1,21 @@
+@media (max-width: 560px) {
+  .system-dashboard .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .system-dashboard .quests-panel,
+  .system-dashboard .attributes-panel,
+  .system-dashboard .skills-panel,
+  .system-dashboard .progress-panel,
+  .system-dashboard .achievements-panel {
+    grid-column: 1 !important;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .system-dashboard .quests-panel { order: 0; }
+  .system-dashboard .attributes-panel { order: 1; }
+  .system-dashboard .skills-panel { order: 2; }
+  .system-dashboard .progress-panel { order: 3; }
+  .system-dashboard .achievements-panel { order: 4; }
+}

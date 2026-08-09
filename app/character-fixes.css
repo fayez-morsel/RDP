@@ -1,0 +1,9 @@
+@media (min-width: 701px) {
+  .character-stage {
+    top: 28px;
+  }
+
+  .page-footer {
+    bottom: 34px;
+  }
+}

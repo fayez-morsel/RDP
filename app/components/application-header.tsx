@@ -1,0 +1,4 @@
+"use client";
+import { Bell, ChevronRight, Menu } from "lucide-react";
+import { navigate } from "../navigation";
+export function ApplicationHeader({ breadcrumb, onMenu, children }: { breadcrumb: string; onMenu?: () => void; children?: React.ReactNode }) { return <header className="dashboard-header"><button className="mobile-menu" onClick={onMenu} aria-label="Open navigation"><Menu size={20}/></button><button className="breadcrumb app-logo" onClick={()=>navigate("Dashboard")} aria-label="Open Dashboard"><span>SYSTEM /</span> {breadcrumb}</button><div className="header-actions"><button className="header-icon" aria-haspopup="dialog" aria-label="0 unread notifications. Open Notification Center"><Bell size={16}/><b>0</b></button><button className="profile-button" onClick={()=>navigate("Profile")} aria-label="Open player profile"><span>F</span><ChevronRight size={15}/></button></div>{children}</header>}
