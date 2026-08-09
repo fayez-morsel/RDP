@@ -59,7 +59,8 @@ end; $$;
 create or replace function public.equip_owned_item(p_player_item_id uuid) returns jsonb language plpgsql security definer set search_path = '' as $$
 declare v_user uuid := security.require_authenticated_user(); v_item public.player_inventory%rowtype; v_kind text;
 begin
- select pi.*, d.kind into v_item, v_kind from public.player_inventory pi join public.item_definitions d on d.id=pi.item_id where pi.id=p_player_item_id and pi.user_id=v_user and pi.quantity>0 for update; if not found then raise exception 'Owned item not found'; end if;
+ select pi.* into v_item from public.player_inventory pi where pi.id=p_player_item_id and pi.user_id=v_user and pi.quantity>0 for update; if not found then raise exception 'Owned item not found'; end if;
+ select d.kind into v_kind from public.item_definitions d where d.id=v_item.item_id;
  update public.player_inventory pi set equipped=false from public.item_definitions d where pi.item_id=d.id and pi.user_id=v_user and d.kind=v_kind;
  update public.player_inventory set equipped=true where id=v_item.id; return jsonb_build_object('itemId',v_item.id,'equipped',true);
 end; $$;
