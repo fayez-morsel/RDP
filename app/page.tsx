@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import "./character.css";
 import "./character-fixes.css";
 import "./character-performance.css";
+import { OnboardingCalibration } from "./onboarding-calibration";
 
 const CharacterScene3D = lazy(() => import("./CharacterScene3D"));
 
@@ -60,6 +61,7 @@ export default function Home() {
   useEffect(() => { if (!ready) return; const timer = window.setTimeout(() => window.location.assign("/dashboard"), 750); return () => window.clearTimeout(timer); }, [ready]);
   const update = (key: AttributeKey, value: number) => { const projected = spent - (stats[key] - 1) + (value - 1); if (projected <= 12) setStats({ ...stats, [key]: value }); };
   return <main className="system-page">
+    <OnboardingCalibration />
     <div className="atmosphere" aria-hidden="true"><div className="fog" /><div className="floor-grid" /><i className="dot d1" /><i className="dot d2" /><i className="dot d3" /><i className="scan" /></div>
     <div className="system-frame" aria-hidden="true"><i /><i /><i /><i /><b>SYS // 01</b><em>UPLINK STABLE</em></div>
     <header className="page-header"><p>SYSTEM / CHARACTER PROTOCOL</p><h1>Character Creation</h1><span>Configure your identity and initialize your SYSTEM.</span></header>

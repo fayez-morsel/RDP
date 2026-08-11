@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   Bell,
   ChevronRight,
-  Eye,
   KeyRound,
   Menu,
   MonitorCog,
@@ -24,9 +23,16 @@ import {
   type SettingSection,
 } from "./data";
 import { IntegrationHub, PortabilityPanel } from "./integration-hub";
+import {
+  ExperienceCenter,
+  NotificationPreferenceCenter,
+  PrivacyCenter,
+  ProgressionLedger,
+} from "./trust-center";
 import "../dashboard/dashboard.css";
 import "./settings.css";
 import "./integration-hub.css";
+import "./trust-center.css";
 
 type Status = "loading" | "saved" | "unsaved" | "saving" | "error";
 export default function SettingsPage() {
@@ -327,6 +333,10 @@ function SettingsSection({
   importData: (e: ChangeEvent<HTMLInputElement>) => void;
   openDanger: (mode: "reset" | "delete") => void;
 }) {
+  if (section === "Experience") return <ExperienceCenter />;
+  if (section === "Notifications") return <NotificationPreferenceCenter />;
+  if (section === "Privacy") return <PrivacyCenter />;
+  if (section === "Progress Ledger") return <ProgressionLedger />;
   if (section === "Integrations") return <IntegrationHub />;
   if (section === "Data") return <PortabilityPanel />;
   const field = (key: keyof Preferences, label: string, type = "text") => (
@@ -529,51 +539,6 @@ function SettingsSection({
         </button>
       </Section>
     );
-  if (section === "Notifications")
-    return (
-      <Section
-        title="Notification protocol"
-        detail="Only in-app notifications are available in this local build; email and push controls are disabled honestly."
-      >
-        {[
-          "questReminders",
-          "habitReminders",
-          "milestones",
-          "streakWarnings",
-          "weeklySummary",
-          "inApp",
-        ].map((key) =>
-          toggle(
-            key as keyof Preferences,
-            key.replace(/([A-Z])/g, " $1"),
-            "In-app notification preference.",
-          ),
-        )}
-        <div className="form-grid">
-          {select("reminder", "Reminder timing", [
-            "15 minutes before",
-            "30 minutes before",
-            "1 hour before",
-          ])}
-          {toggle(
-            "quietHours",
-            "Quiet hours",
-            "Silence reminders from 22:00 to 08:00.",
-          )}
-          {toggle("sound", "Notification sound", "Play a subtle in-app sound.")}
-        </div>
-        <div className="unsupported">
-          Email and push notifications require a connected notification service
-          and are unavailable.
-        </div>
-        <button
-          className="section-save"
-          onClick={() => alert("Test notification: Your next quest is ready.")}
-        >
-          Test in-app notification
-        </button>
-      </Section>
-    );
   if (section === "RPG Preferences")
     return (
       <Section
@@ -596,61 +561,6 @@ function SettingsSection({
             "Personal display and workflow preference.",
           ),
         )}
-      </Section>
-    );
-  if (section === "Privacy")
-    return (
-      <Section
-        title="Public presence"
-        detail="This preview never contains email, private quests, private habits, account data, or precise location."
-      >
-        {toggle(
-          "publicRanking",
-          "Join public Leaderboard",
-          "Allow your selected public profile to appear in rankings.",
-        )}
-        {field("publicName", "Custom public display name")}
-        {toggle(
-          "showAvatar",
-          "Show avatar",
-          "Share your player avatar publicly.",
-        )}
-        {toggle(
-          "showRank",
-          "Show level and rank",
-          "Share current progression markers.",
-        )}
-        {toggle(
-          "shareAchievements",
-          "Share selected achievements",
-          "Show public achievement badges.",
-        )}
-        {toggle(
-          "shareSkills",
-          "Share skill highlights",
-          "Show selected specialization names.",
-        )}
-        {toggle(
-          "shareQuests",
-          "Share quest totals",
-          "Show only aggregated totals.",
-        )}
-        {toggle(
-          "shareHabits",
-          "Share habit consistency",
-          "Show only an aggregate percentage.",
-        )}
-        <div className="public-preview">
-          <Eye size={16} />
-          <div>
-            <small>PUBLIC PROFILE PREVIEW</small>
-            <b>{prefs.publicName || prefs.displayName}</b>
-            <span>
-              {prefs.showRank ? "Level 12 · Rank E" : "Progression hidden"} ·{" "}
-              {prefs.shareAchievements ? "Pathfinder" : "Achievements hidden"}
-            </span>
-          </div>
-        </div>
       </Section>
     );
   if (section === "Accessibility")

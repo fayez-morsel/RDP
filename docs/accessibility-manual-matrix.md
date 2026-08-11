@@ -1,0 +1,15 @@
+# Accessibility verification matrix
+
+Verify each release at 200% browser zoom and with reduced motion enabled.
+
+| Surface               | Keyboard and focus                                                                   | Screen reader                                                                        | Contrast and color                                         | Responsive                              |
+| --------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------------------- | --------------------------------------- |
+| Onboarding            | Skip, Back, Continue, and choices follow DOM order; dialog opens on its first action | Named modal, step count, field labels, and non-permanent skill explanation announced | Selected state uses icon, border, and text—not color alone | No horizontal overflow at 320 px        |
+| Dashboard / Today     | Skip link reaches main; sidebar and notification buttons have visible focus          | One main landmark; navigation and controls have accessible names                     | High-contrast mode preserves status boundaries             | Sidebar becomes an overlay below 900 px |
+| Quests and Habits     | Creation, completion, and evidence dialogs work without pointer input                | Status and errors are text; controls retain labels                                   | Completion never relies only on green                      | Cards stack without clipping            |
+| Settings / Experience | Native selects, checkboxes, and ranges are reachable in reading order                | Mode descriptions explain presentation-only behavior                                 | Color-safe patterns supplement chart palettes              | Mode cards wrap into one column         |
+| Notification Center   | Escape closes; close action receives focus                                           | Named modal, polite live region, readable notification dates                         | Priority is paired with icons and labels                   | Drawer remains within viewport          |
+| Privacy / deletion    | Confirmation phrase and cancel remain keyboard reachable                             | Named destructive-action dialog and status result                                    | Danger state includes icon and explicit copy               | Confirmation fits at 320 px             |
+| Progress ledger       | Expand buttons expose `aria-expanded`                                                | Read-only status, source, caps, and reference IDs are text                           | Positive/negative changes include signs and units          | Rows wrap without hiding references     |
+
+Manual assistive-technology pass: NVDA + Firefox on Windows, VoiceOver + Safari on iOS, and TalkBack + Chrome on Android. Check English LTR and Arabic RTL in every row.
