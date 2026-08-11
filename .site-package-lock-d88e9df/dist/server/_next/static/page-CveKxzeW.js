@@ -1,0 +1,1 @@
+import{t as e}from"./framework~index~page~layout~app-page-cache-render~app-page-cache~app-route-handler-dispatch-CB1WG5qO.js";var t=e();function n(){return(0,t.jsxs)(`main`,{className:`placeholder`,children:[(0,t.jsx)(`p`,{children:`SYSTEM / ONBOARDING`}),(0,t.jsx)(`h1`,{children:`Dashboard coming next.`})]})}export{n as default};

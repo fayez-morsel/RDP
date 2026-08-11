@@ -1,4 +1,5 @@
 import type { Quest } from "./player-store";
+import { eligibleCampaignQuests, type Dependency } from "./campaign-engine.ts";
 
 export type DayMode = "Recovery" | "Balanced" | "Push";
 export type DailyCheckIn = { minutes: number; energy: 1 | 2 | 3 | 4 | 5; focus: 1 | 2 | 3 | 4 | 5; mode: DayMode; note?: string };
@@ -9,8 +10,9 @@ const energyFor = (difficulty: Quest["difficulty"]) => ({ Easy: 1, Medium: 2, Ha
 const urgencyFor = (deadline: string) => /today|\d+h|tomorrow/i.test(deadline) ? 30 : /\d+ days|sunday/i.test(deadline) ? 14 : 4;
 
 /** Pure, deterministic ranking: no LLM, random values, XP, or mutation. */
-export function rankPrimeQuests(quests: Quest[], checkIn: DailyCheckIn): RankedQuest[] {
-  return quests.filter(quest => quest.status === "active" && quest.progress < 100 && quest.objectives.some(objective => !objective.done)).map(quest => {
+export function rankPrimeQuests(quests: Quest[], checkIn: DailyCheckIn, campaignDependencies: Dependency[] = []): RankedQuest[] {
+  const eligibleIds = new Set(eligibleCampaignQuests(quests, campaignDependencies).map(quest => quest.id));
+  return quests.filter(quest => eligibleIds.has(quest.id) && quest.progress < 100 && quest.objectives.some(objective => !objective.done)).map(quest => {
     const estimatedMinutes = minutesFor(quest.difficulty); const neededEnergy = energyFor(quest.difficulty);
     const energyFit = checkIn.energy >= neededEnergy ? 24 : -32; const capacityFit = estimatedMinutes <= checkIn.minutes ? 18 : -22;
     const inProgress = quest.progress > 0 ? 16 : 0; const importance = ({ Easy: 5, Medium: 11, Hard: 17, Legendary: 22 })[quest.difficulty];

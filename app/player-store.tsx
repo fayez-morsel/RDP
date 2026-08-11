@@ -35,7 +35,7 @@ export const rpgConfig = {
   leagues: ["Initiate I", "Vanguard III", "Ascendant I", "Paragon"],
 } as const;
 const attributeSeeds = [["strength", "Strength", 72, 720, 7], ["intelligence", "Intelligence", 86, 860, 8], ["discipline", "Discipline", 79, 790, 7], ["creativity", "Creativity", 68, 680, 6], ["focus", "Focus", 82, 820, 8], ["communication", "Communication", 61, 610, 6]] as const;
-export const defaultPlayerPreferences: PlayerPreferences = { publicRanking: true, showAvatar: true, showRank: true, shareAchievements: true, shareSkills: true, shareQuests: false, shareHabits: false };
+export const defaultPlayerPreferences: PlayerPreferences = { publicRanking: false, showAvatar: true, showRank: false, shareAchievements: false, shareSkills: false, shareQuests: false, shareHabits: false };
 
 export const initialPlayerState: PlayerState = {
   version: 1,
@@ -106,6 +106,7 @@ type Store = {
   updateProfile: (patch: Partial<PlayerProfile>) => void; updatePreferences: (patch: Partial<PlayerPreferences>) => void; setAnalyticsRange: (range: PlayerState["analyticsRange"]) => void; completeHabit: (id: string, date?: ISODate) => CommandResult; addSkillXp: (skillId: string, amount: number, sourceId: string) => CommandResult; updateQuestObjective: (questId: string, objectiveId: string) => boolean; completeQuest: (id: string) => CommandResult;
   evolveSkillNode: (nodeId: string, skillId: string, amount: number, progress: SkillNodeProgress) => CommandResult;
   addQuest: (quest: Omit<Quest, "id" | "status"> & { status?: Quest["status"] }) => string; deleteQuest: (id: string) => boolean;
+  updateQuestPlanning: (id: string, patch: Partial<Pick<Quest, "title" | "description" | "deadline" | "status">>) => boolean;
   allocate: (attributeId: string, points: number) => boolean; addInventory: (item: InventoryItem) => void; consumeInventory: (id: string) => boolean;
   equipInventory: (id: string) => boolean; unlockAchievement: (id: string) => boolean; claimAchievement: (id: string) => boolean; claimReward: (rewardId: string) => boolean; recordActivity: (event: ActivityEvent) => boolean;
 };
@@ -138,8 +139,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     evolveSkillNode: (nodeId, skillId, amount, progress) => { const result = addSkillXpCommand(state, skillId, amount, `skill-tree:${nodeId}`); if (result.ok) setState({ ...result.state, skillNodes: { ...result.state.skillNodes, [nodeId]: progress } }); return result; },
     updateQuestObjective: (questId, objectiveId) => { const quest = state.quests.find(entry => entry.id === questId); if (!quest || quest.status === "completed" || !quest.objectives.some(objective => objective.id === objectiveId)) return false; const objectives = quest.objectives.map(objective => objective.id === objectiveId ? { ...objective, done: !objective.done } : objective); const updatedQuest = { ...quest, objectives, progress: Math.round(objectives.filter(objective => objective.done).length / objectives.length * 100) }; if (objectives.length > 0 && objectives.every(objective => objective.done)) { const result = completeQuestCommand({ ...state, quests: state.quests.map(entry => entry.id === questId ? updatedQuest : entry) }, questId); if (result.ok) setState(result.state); return result.ok; } setState(current => ({ ...current, quests: current.quests.map(entry => entry.id === questId ? updatedQuest : entry) })); return true; },
     completeQuest: id => { const result = completeQuestCommand(state, id); if (result.ok) setState(result.state); return result; },
-    addQuest: quest => { const id = `quest:${Date.now()}`; setState(current => ({ ...current, quests: [{ ...quest, id, status: quest.status ?? "active" }, ...current.quests] })); return id; },
+    addQuest: quest => { const id = `quest:${crypto.randomUUID()}`; setState(current => ({ ...current, quests: [{ ...quest, id, status: quest.status ?? "active" }, ...current.quests] })); return id; },
     deleteQuest: id => { const quest = state.quests.find(entry => entry.id === id); if (!quest || quest.status === "completed") return false; setState(current => ({ ...current, quests: current.quests.filter(entry => entry.id !== id) })); return true; },
+    updateQuestPlanning: (id, patch) => { const quest = state.quests.find(entry => entry.id === id); if (!quest || quest.status === "completed" || patch.status === "completed") return false; const title = patch.title?.trim(); if (patch.title !== undefined && (!title || title.length > 160)) return false; setState(current => ({ ...current, quests: current.quests.map(entry => entry.id === id ? { ...entry, ...patch, ...(title ? { title } : {}) } : entry) })); return true; },
     allocate: (attributeId, points) => {
       if (!Number.isInteger(points) || points < 1 || points > state.progression.attributePoints || !state.attributes.some(attribute => attribute.id === attributeId)) return false;
       const occurredAt = new Date().toISOString(); const allocationEvent: ActivityEvent = { id: `attribute_milestone:${attributeId}:${occurredAt}`, type: "attribute_milestone", sourceId: attributeId, occurredAt, route: "/profile", metadata: { idempotencyKey: `attribute_allocation:${attributeId}:${occurredAt}`, points } };

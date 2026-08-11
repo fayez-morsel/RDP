@@ -16,7 +16,7 @@ import { CampaignsView } from "./campaigns-view";
 
 type QuestType = "Daily" | "Weekly" | "Main Quests" | "Side Quests" | "Completed" | "Campaigns";
 type Category = "Fitness" | "Learning" | "Career" | "Health" | "Social" | "Personal Growth";
-type Quest = { id: number | string; title: string; description: string; category: Category; type: Exclude<QuestType, "Completed">; difficulty: "Easy" | "Medium" | "Hard" | "Legendary"; xp: number; coins?: number; progress: number; deadline: string; objectives: { label: string; done: boolean }[]; icon: LucideIcon; accent: string; completed?: boolean; };
+type Quest = { id: number | string; title: string; description: string; category: Category; type: Exclude<QuestType, "Completed" | "Campaigns">; difficulty: "Easy" | "Medium" | "Hard" | "Legendary"; xp: number; coins?: number; progress: number; deadline: string; objectives: { label: string; done: boolean }[]; icon: LucideIcon; accent: string; completed?: boolean; };
 
 const tabs: QuestType[] = ["Daily", "Weekly", "Main Quests", "Side Quests", "Completed", "Campaigns"];
 const filters: Array<"All" | Category> = ["All", "Fitness", "Learning", "Career", "Health", "Social", "Personal Growth"];

@@ -1,0 +1,12 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+const sql=(await readFile(new URL("../supabase/migrations/202608110011_integration_portability_offline.sql",import.meta.url),"utf8")).toLowerCase();
+const sw=await readFile(new URL("../public/sw.js",import.meta.url),"utf8");
+const manifest=JSON.parse(await readFile(new URL("../public/manifest.webmanifest",import.meta.url),"utf8"));
+test("integration and portability tables use RLS while credentials have no browser policy",()=>{for(const table of ["integration_connections","encrypted_provider_credentials","integration_sync_cursors","integration_sync_events","external_entity_mappings","import_jobs","export_jobs","offline_mutation_receipts"])assert.match(sql,new RegExp(`alter table public\\.${table} enable row level security`));assert.doesNotMatch(sql,/create policy[^;]+encrypted_provider_credentials/);});
+test("tokens are encrypted, server-only, revocable, and never named in client UI",async()=>{assert.match(sql,/encrypted_access_token bytea/);assert.match(sql,/encrypted_refresh_token bytea/);assert.match(sql,/revoked_at/);assert.match(sql,/delete from public\.integration_sync_cursors/);const client=await readFile(new URL("../app/settings/integration-hub.tsx",import.meta.url),"utf8");assert.doesNotMatch(client,/client_secret|refresh_token|access_token/i);});
+test("external mutation is restricted to SYSTEM-owned mappings",()=>{assert.match(sql,/system_owned=true/);assert.match(sql,/system may modify only its own external events/);assert.match(sql,/unique\(connection_id,external_entity_id\)/);});
+test("offline replay receipt is unique and calls authoritative quest completion with stable ID",()=>{assert.match(sql,/unique\(user_id,client_request_id\)/);assert.match(sql,/public\.complete_quest\(p_entity_id,p_request_id\)/);assert.match(sql,/duplicate',true/);});
+test("PWA caches private navigation only after account context and clears it",()=>{assert.match(sw,/if\(accountid&&response\.ok\)/i);assert.match(sw,/system-private-/);assert.match(sw,/clear_account/i);assert.doesNotMatch(sw,/\/api\//);});
+test("manifest exposes safe quick capture, Today, and Focus shortcuts",()=>{assert.equal(manifest.display,"standalone");assert.deepEqual(manifest.shortcuts.map((item)=>item.name),["Quick Capture","Today","Focus"]);assert.equal(manifest.share_target.method,"GET");});

@@ -6,11 +6,13 @@ import { Sidebar } from "../dashboard/page";
 import { selectAchievementTotals, selectHabitSummary, selectLeaderboardScore, selectQuestTotals, usePlayer } from "../player-store";
 import { categories, players, scopes, type LeaderboardCategory, type Player } from "./data";
 import { scoringRules } from "./scoring";
+import { SocialHub } from "./social-hub";
 import "../dashboard/dashboard.css";
 import "./leaderboard.css";
+import "./social.css";
 
 type Preferences = { scope: (typeof scopes)[number]; category: LeaderboardCategory; displayName: string; publicRanking: boolean; hideAvatar: boolean };
-const defaultPreferences: Preferences = { scope: "Global", category: "Overall Score", displayName: "Fayez", publicRanking: true, hideAvatar: false };
+const defaultPreferences: Preferences = { scope: "Personal best", category: "Overall Score", displayName: "Fayez", publicRanking: false, hideAvatar: false };
 const scoreFor = (player: Player, category: LeaderboardCategory) => ({ "Overall Score": player.score, Quests: player.quests, "Habit Consistency": player.habitConsistency, "Skill Mastery": player.skillMastery, Achievements: player.achievements, "Current Streak": player.streak }[category]);
 
 export default function LeaderboardPage() {
@@ -20,13 +22,14 @@ export default function LeaderboardPage() {
   const [selected, setSelected] = useState<Player | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [view, setView] = useState<"Progress" | "Allies" | "Guilds" | "Cooperative Bosses">("Progress");
 
   const currentPlayer = useMemo<Player>(() => {
     const quests = selectQuestTotals(state); const habits = selectHabitSummary(state); const achievements = selectAchievementTotals(state);
     return { id: 17, name: state.profile.displayName, title: state.profile.title, level: state.progression.level, rank: state.progression.rank, score: selectLeaderboardScore(state), quests: quests.completed, streak: habits.longestStreak, badge: "Pathfinder", movement: 0, habitConsistency: habits.consistency, skillMastery: Math.round(state.skills.reduce((total, skill) => total + skill.level, 0) / Math.max(state.skills.length, 1) * 10), achievements: achievements.unlocked, skillHighlights: state.skills.slice(0, 2).map(skill => skill.name), publicAchievements: state.achievements.filter(item => item.status === "unlocked").slice(0, 3).map(item => item.name), history: [22, 21, 20, 19, 18, 17] };
   }, [state]);
   const allPlayers = useMemo(() => [...players.filter(player => player.id !== 17), currentPlayer], [currentPlayer]);
-  const rankings = useMemo(() => allPlayers.filter((player) => player.name.toLowerCase().includes(query.toLowerCase())).toSorted((a, b) => scoreFor(b, preferences.category) - scoreFor(a, preferences.category)), [allPlayers, preferences.category, query]);
+  const rankings = useMemo(() => { const scoped = preferences.scope === "Personal best" ? [currentPlayer] : preferences.scope === "Allies" ? allPlayers.filter((player) => [2, 8, 17].includes(player.id)) : preferences.scope === "Guild" ? allPlayers.filter((player) => [1, 2, 17].includes(player.id)) : allPlayers; return scoped.filter((player) => player.name.toLowerCase().includes(query.toLowerCase())).toSorted((a, b) => scoreFor(b, preferences.category) - scoreFor(a, preferences.category)); }, [allPlayers, currentPlayer, preferences.category, preferences.scope, query]);
   const ownPosition = Math.max(1, rankings.findIndex(player => player.id === 17) + 1);
   const update = (patch: Partial<Preferences>) => { setPreferences((current) => ({ ...current, ...patch })); if (patch.publicRanking !== undefined) updatePreferences({ publicRanking: patch.publicRanking }); if (patch.hideAvatar !== undefined) updatePreferences({ showAvatar: !patch.hideAvatar }); };
 
@@ -36,11 +39,15 @@ export default function LeaderboardPage() {
     <section className={`dashboard-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
       <header className="dashboard-header"><button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><div className="breadcrumb"><span>SYSTEM /</span> LEADERBOARD</div><div className="lb-online">SYSTEM ONLINE <i /> 14 JUN 2026 · 21:48</div><div className="header-actions"><button className="header-icon" aria-label="View notifications"><Bell size={16} /><b>3</b></button><button className="profile-button" aria-label="Open player profile"><span>F</span><ChevronRight size={15} /></button></div></header>
       <div className="lb-content">
+        <nav className="social-tabs" aria-label="Leaderboard sections">{(["Progress", "Allies", "Guilds", "Cooperative Bosses"] as const).map((item) => <button key={item} className={view === item ? "active" : ""} aria-current={view === item ? "page" : undefined} onClick={() => setView(item)}>{item}</button>)}</nav>
+        {view === "Progress" && <label className="hide-rank-control"><input type="checkbox" checked={!state.preferences.showRank} onChange={(event) => updatePreferences({ showRank: !event.target.checked })} /> Hide my rank</label>}
+        {view === "Progress" ? <>
         <section className="lb-hero"><div><p>SEASON TERMINAL / LIVE</p><h1>ASCENSION <em>RANKINGS</em></h1><span>Measure your progress. Rise through the ranks.</span></div><div className="season-name"><b>Awakening Protocol — Season 04</b><small>12d 04h 18m until season end</small><span className="live-dot">LIVE SEASON</span></div><div className="season-position"><strong>#{ownPosition}</strong><span>{state.progression.league} · {currentPlayer.score.toLocaleString()} score</span><i><b /></i><small>Keep completing verified actions to advance.</small></div></section>
-        <section className="podium" aria-label="Top three players">{allPlayers.toSorted((a, b) => b.score - a.score).slice(0, 3).map((player, index) => <Podium player={player} place={index + 1} key={player.id} onSelect={setSelected} />)}</section>
+        {preferences.scope !== "Personal best" && <section className="podium" aria-label="Top three players">{rankings.slice(0, 3).map((player, index) => <Podium player={player} place={index + 1} key={player.id} onSelect={setSelected} />)}</section>}
         <section className="lb-controls" aria-label="Leaderboard filters"><div className="filter-scroll">{scopes.map((scope) => <button className={preferences.scope === scope ? "active" : ""} onClick={() => update({ scope })} key={scope}>{scope}</button>)}</div><div className="filter-scroll categories">{categories.map((category) => <button className={preferences.category === category ? "active" : ""} onClick={() => update({ category })} key={category}>{category}</button>)}</div><label><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search public players" aria-label="Search public players" /></label></section>
         <div className="lb-layout"><section className="rankings game-panel"><header><div><p>{preferences.scope.toUpperCase()} / {preferences.category.toUpperCase()}</p><h2>Competitive signal</h2></div><small>Rank changes update as verified activity resolves.</small></header>{rankings.length ? rankings.map((player, index) => <RankRow player={player} position={index + 1} category={preferences.category} selected={selected?.id === player.id} onSelect={setSelected} key={player.id} />) : <div className="lb-empty"><Search size={24} /><b>No public signals found</b><span>Try a different player name or ranking scope.</span></div>}</section>
           <aside className="lb-support"><section className="season-reward game-panel"><Trophy size={21} /><p>PROJECTED SEASON REWARD</p><h3>Vanguard III cache</h3><span>1,200 XP · 800 coins · <b>Pulseborne</b> title</span><div className="reward-list"><span>Profile frame</span><span>Prismatic key</span><span>Rare inventory item</span></div><strong>260 points to next tier</strong><small>Rewards are granted only after season finalization.</small></section><section className="privacy-panel game-panel"><div><ShieldCheck size={16} /><p>PUBLIC PRESENCE</p></div><label>Public rankings <input type="checkbox" checked={preferences.publicRanking} onChange={(event) => update({ publicRanking: event.target.checked })} /></label><label>Hide avatar <input type="checkbox" checked={preferences.hideAvatar} onChange={(event) => update({ hideAvatar: event.target.checked })} /></label><label>Display name <input value={preferences.displayName} maxLength={22} onChange={(event) => update({ displayName: event.target.value })} /></label></section><section className="scoring-panel game-panel"><p>SCORING PROTOCOL</p>{scoringRules.map((rule) => <div key={rule.label}><b>{rule.label}</b><span>{rule.detail}</span></div>)}</section></aside></div>
+        </> : <SocialHub view={view} />}
       </div>
     </section>
     {selected ? <PlayerDrawer player={selected} onClose={() => setSelected(null)} /> : null}

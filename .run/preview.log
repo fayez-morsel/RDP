@@ -1,0 +1,11 @@
+
+  vinext start  (port 3000)
+
+[vinext] Production server running at http://0.0.0.0:3000
+[vinext] Static file stream error for C:/Users/ASUS/Desktop/rdp/dist/client/_next/static/chunks/index-CNA5hoYM.js: ENOENT: no such file or directory, open 'C:\Users\ASUS\Desktop\rdp\dist\client\_next\static\chunks\index-CNA5hoYM.js'
+[vinext] Static file stream error for C:/Users/ASUS/Desktop/rdp/dist/client/_next/static/chunks/index-CNA5hoYM.js: ENOENT: no such file or directory, open 'C:\Users\ASUS\Desktop\rdp\dist\client\_next\static\chunks\index-CNA5hoYM.js'
+[vinext] Static file stream error for C:/Users/ASUS/Desktop/rdp/dist/client/_next/static/chunks/page-BVa_djvP.js: ENOENT: no such file or directory, open 'C:\Users\ASUS\Desktop\rdp\dist\client\_next\static\chunks\page-BVa_djvP.js'
+[vinext] Static file stream error for C:/Users/ASUS/Desktop/rdp/dist/client/_next/static/chunks/page-BVa_djvP.js: ENOENT: no such file or directory, open 'C:\Users\ASUS\Desktop\rdp\dist\client\_next\static\chunks\page-BVa_djvP.js'
+[vinext] Static file stream error for C:/Users/ASUS/Desktop/rdp/dist/client/_next/static/chunks/page-BVa_djvP.js: ENOENT: no such file or directory, open 'C:\Users\ASUS\Desktop\rdp\dist\client\_next\static\chunks\page-BVa_djvP.js'
+[vinext] Static file stream error for C:/Users/ASUS/Desktop/rdp/dist/client/_next/static/chunks/page-BVa_djvP.js: ENOENT: no such file or directory, open 'C:\Users\ASUS\Desktop\rdp\dist\client\_next\static\chunks\page-BVa_djvP.js'
+[vinext] Static file stream error for C:/Users/ASUS/Desktop/rdp/dist/client/_next/static/chunks/page-BVa_djvP.js: ENOENT: no such file or directory, open 'C:\Users\ASUS\Desktop\rdp\dist\client\_next\static\chunks\page-BVa_djvP.js'

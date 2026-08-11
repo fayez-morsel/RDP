@@ -1,0 +1,17 @@
+{
+  "name":"SYSTEM — Personal Progress Command Center",
+  "short_name":"SYSTEM",
+  "description":"A private, offline-capable command center for quests, habits, focus, and reflection.",
+  "start_url":"/dashboard",
+  "display":"standalone",
+  "background_color":"#020914",
+  "theme_color":"#061421",
+  "orientation":"any",
+  "icons":[{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}],
+  "shortcuts":[
+    {"name":"Quick Capture","short_name":"Capture","url":"/dashboard?capture=1","icons":[{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml"}]},
+    {"name":"Today","short_name":"Today","url":"/dashboard","icons":[{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml"}]},
+    {"name":"Focus","short_name":"Focus","url":"/dashboard?focus=1","icons":[{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml"}]}
+  ],
+  "share_target":{"action":"/dashboard","method":"GET","params":{"title":"title","text":"capture","url":"url"}}
+}

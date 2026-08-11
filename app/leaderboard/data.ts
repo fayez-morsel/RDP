@@ -20,7 +20,7 @@ export type Player = {
 };
 
 export const categories: LeaderboardCategory[] = ["Overall Score", "Quests", "Habit Consistency", "Skill Mastery", "Achievements", "Current Streak"];
-export const scopes = ["Global", "Friends", "Weekly", "Monthly", "All Time"] as const;
+export const scopes = ["Personal best", "Allies", "Guild", "Season"] as const;
 
 export const players: Player[] = [
   { id: 1, name: "Ari Voss", title: "Solar Architect", level: 28, rank: "A", score: 18420, quests: 312, streak: 41, badge: "Dawnforged", movement: 2, habitConsistency: 97, skillMastery: 91, achievements: 38, skillHighlights: ["Systems", "Leadership"], publicAchievements: ["Dawnforged", "Iron Calendar", "First Light"], history: [4, 3, 3, 2, 1, 1] },

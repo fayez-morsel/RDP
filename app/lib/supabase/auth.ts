@@ -1,6 +1,7 @@
 "use client";
 
 import { createSupabaseBrowserClient } from "./browser";
+import { clearPrivateOfflineState } from "../../offline-client";
 
 const safeReturnTo = (path: string | null | undefined) => path && path.startsWith("/") && !path.startsWith("//") ? path : "/dashboard";
 
@@ -25,5 +26,5 @@ export async function updatePassword(password: string) {
   if (error) throw new Error(error.message);
 }
 
-export async function signOut() { const { error } = await createSupabaseBrowserClient().auth.signOut(); if (error) throw new Error(error.message); }
+export async function signOut() { const { error } = await createSupabaseBrowserClient().auth.signOut(); if (error) throw new Error(error.message); await clearPrivateOfflineState(); }
 export async function initializePlayer(displayName: string, username: string, title?: string) { const { data, error } = await createSupabaseBrowserClient().rpc("initialize_player", { p_display_name: displayName, p_username: username, p_title: title } as never); if (error) throw new Error(error.message); return data; }

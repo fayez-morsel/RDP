@@ -1,0 +1,8 @@
+const SHELL="system-shell-v1";let accountId=null;const shellAssets=["/favicon.svg","/manifest.webmanifest"];
+self.addEventListener("install",event=>event.waitUntil(caches.open(SHELL).then(cache=>cache.addAll(shellAssets))));
+self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
+self.addEventListener("message",event=>{if(event.data?.type==="SET_ACCOUNT"&&typeof event.data.accountId==="string")accountId=event.data.accountId.replace(/[^a-zA-Z0-9_-]/g,"").slice(0,80);if(event.data?.type==="CLEAR_ACCOUNT"){const old=accountId;accountId=null;if(old)event.waitUntil(caches.delete(`system-private-${old}`));}});
+self.addEventListener("fetch",event=>{const request=event.request;if(request.method!=="GET")return;const url=new URL(request.url);if(url.origin!==self.location.origin)return;
+  if(request.mode==="navigate"){event.respondWith(fetch(request).then(response=>{if(accountId&&response.ok){const copy=response.clone();event.waitUntil(caches.open(`system-private-${accountId}`).then(cache=>cache.put(request,copy)));}return response;}).catch(async()=>{if(accountId){const cached=await caches.open(`system-private-${accountId}`).then(cache=>cache.match(request));if(cached)return cached;}return new Response("SYSTEM is offline. Reconnect once to cache this page for the current account.",{status:503,headers:{"Content-Type":"text/plain"}});}));return;}
+  if(url.pathname.startsWith("/assets/")||url.pathname.endsWith(".svg")){event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{if(response.ok)caches.open(SHELL).then(cache=>cache.put(request,response.clone()));return response;})));}
+});
